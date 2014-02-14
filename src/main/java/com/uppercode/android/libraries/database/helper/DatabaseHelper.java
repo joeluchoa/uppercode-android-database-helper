@@ -10,16 +10,24 @@ import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
+import com.uppercode.android.libraries.database.helper.json.DatabaseJsonHelper;
+import com.uppercode.android.libraries.database.helper.model.IDatabaseModel;
 
 public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 
 	private static final String TAG = DatabaseHelper.class.getSimpleName();
 
-	private Class<?>[] mTables = null;
+	public static final int LOCAL_ID_START_VALUE = 1234567890;
+	public static final int WEB_ID_MAX_VALUE = LOCAL_ID_START_VALUE - 1;
 
-	public DatabaseHelper(Context context, String dbName, int dbVersion, Class<?>[] tables) {
+	private Class<? extends IDatabaseModel>[] mTables = null;
+	private DatabaseJsonHelper mJsonHelper;
+
+	public DatabaseHelper(Context context, String dbName, int dbVersion,
+			Class<? extends IDatabaseModel>[] tables) {
 		super(context, dbName, null, dbVersion);
 		this.mTables = tables;
+		mJsonHelper = new DatabaseJsonHelper(mTables);
 	}
 
 	@Override
@@ -40,8 +48,9 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 
 	protected void createAllTables(ConnectionSource connectionSource) {
 		try {
-			for (Class<?> table : mTables) {
+			for (Class<? extends IDatabaseModel> table : mTables) {
 				TableUtils.createTable(connectionSource, table);
+				setStartIdValue(table);
 			}
 		} catch (java.sql.SQLException e) {
 			Log.e(TAG, "Can't create database", e);
@@ -65,5 +74,32 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 			Log.e(TAG, "Error to get DAO for class " + cls.getSimpleName(), e);
 		}
 		return null;
+	}
+
+	public DatabaseJsonHelper getJsonHelper() {
+		return mJsonHelper;
+	}
+
+	public static <T extends IDatabaseModel> boolean registerFromWeb(T m) {
+		return m.getId() <= WEB_ID_MAX_VALUE;
+	}
+
+	public static <T extends IDatabaseModel> boolean localRegister(T m) {
+		return m.getId() >= LOCAL_ID_START_VALUE;
+	}
+
+	private <T extends IDatabaseModel> void setStartIdValue(Class<T> cls) {
+		try {
+			T m = cls.newInstance();
+			m.setId(LOCAL_ID_START_VALUE);
+			getModelDao(cls).create(m);
+			getModelDao(cls).delete(m);
+		} catch (InstantiationException e) {
+			Log.e(TAG, "Error setStartIdValue " + cls.getSimpleName(), e);
+		} catch (IllegalAccessException e) {
+			Log.e(TAG, "Error setStartIdValue " + cls.getSimpleName(), e);
+		} catch (SQLException e) {
+			Log.e(TAG, "Error setStartIdValue " + cls.getSimpleName(), e);
+		}
 	}
 }

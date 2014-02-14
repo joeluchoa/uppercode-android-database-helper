@@ -11,6 +11,7 @@ import com.j256.ormlite.dao.Dao.CreateOrUpdateStatus;
 import com.j256.ormlite.stmt.PreparedQuery;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.uppercode.android.libraries.database.helper.DatabaseHelper;
+import com.uppercode.android.libraries.database.helper.json.DatabaseJsonHelper;
 import com.uppercode.android.libraries.database.helper.model.IDatabaseModel;
 
 public class DatabaseService<T extends IDatabaseModel> {
@@ -18,16 +19,30 @@ public class DatabaseService<T extends IDatabaseModel> {
 	private static final String TAG = DatabaseService.class.getSimpleName();
 
 	private Dao<T, Integer> mDao;
+	private DatabaseJsonHelper mJsonHelper;
+	private Class<T> mClass;
 
 	public DatabaseService(DatabaseHelper dbHelper, Class<T> cls) {
-		this.mDao = dbHelper.getModelDao(cls);
+		mJsonHelper = dbHelper.getJsonHelper();
+		mDao = dbHelper.getModelDao(cls);
+		mClass = cls;
+	}
+
+	public T loadFromJson(String json) {
+		try {
+			T model = mJsonHelper.build(mClass).fromJson(json, mClass);
+			return model;
+		} catch (Exception e) {
+			Log.e(TAG, "LoadFromJson error!", e);
+		}
+		return null;
 	}
 
 	public CreateOrUpdateStatus save(T model) {
 		try {
 			return mDao.createOrUpdate(model);
 		} catch (SQLException e) {
-			e.printStackTrace();
+			Log.e(TAG, "Save error!", e);
 		}
 		return null;
 	}
