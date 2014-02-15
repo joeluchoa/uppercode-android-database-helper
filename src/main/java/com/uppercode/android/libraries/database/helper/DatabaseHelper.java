@@ -20,11 +20,10 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 	public static final int LOCAL_ID_START_VALUE = 1234567890;
 	public static final int WEB_ID_MAX_VALUE = LOCAL_ID_START_VALUE - 1;
 
-	private Class<? extends IDatabaseModel>[] mTables = null;
+	private Class<?>[] mTables = null;
 	private DatabaseJsonHelper mJsonHelper;
 
-	public DatabaseHelper(Context context, String dbName, int dbVersion,
-			Class<? extends IDatabaseModel>[] tables) {
+	public DatabaseHelper(Context context, String dbName, int dbVersion, Class<?>[] tables) {
 		super(context, dbName, null, dbVersion);
 		this.mTables = tables;
 		mJsonHelper = new DatabaseJsonHelper(mTables);
@@ -48,7 +47,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 
 	protected void createAllTables(ConnectionSource connectionSource) {
 		try {
-			for (Class<? extends IDatabaseModel> table : mTables) {
+			for (Class<?> table : mTables) {
 				TableUtils.createTable(connectionSource, table);
 				setStartIdValue(table);
 			}
@@ -88,10 +87,10 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 		return m.getId() >= LOCAL_ID_START_VALUE;
 	}
 
-	private <T extends IDatabaseModel> void setStartIdValue(Class<T> cls) {
+	private <T> void setStartIdValue(Class<T> cls) {
 		try {
 			T m = cls.newInstance();
-			m.setId(LOCAL_ID_START_VALUE);
+			((IDatabaseModel) m).setId(LOCAL_ID_START_VALUE);
 			getModelDao(cls).create(m);
 			getModelDao(cls).delete(m);
 		} catch (InstantiationException e) {
