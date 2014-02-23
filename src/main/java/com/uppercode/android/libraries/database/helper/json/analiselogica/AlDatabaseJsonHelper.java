@@ -8,6 +8,10 @@ public class AlDatabaseJsonHelper extends DatabaseJsonHelper {
 
 	public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd'T'hh:mm:ss";
 
+	public AlDatabaseJsonHelper(Class<?>[] models) {
+		super(models);
+	}
+
 	@Override
 	protected GsonBuilder config(GsonBuilder builder) {
 		builder.setDateFormat(DEFAULT_DATE_FORMAT);
