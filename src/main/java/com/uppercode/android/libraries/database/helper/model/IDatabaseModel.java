@@ -5,4 +5,6 @@ public interface IDatabaseModel {
 	public void setId(Integer id);
 
 	public Integer getId();
+
+	public void loadForeign();
 }
