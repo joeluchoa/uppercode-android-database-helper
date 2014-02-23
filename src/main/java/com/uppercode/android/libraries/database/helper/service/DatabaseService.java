@@ -22,7 +22,10 @@ public class DatabaseService<T extends IDatabaseModel> {
 	private DatabaseJsonHelper mJsonHelper;
 	private Class<T> mClass;
 
+	private DatabaseHelper mDbHelper;
+
 	public DatabaseService(DatabaseHelper dbHelper, Class<T> cls) {
+		mDbHelper = dbHelper;
 		mJsonHelper = dbHelper.getJsonHelper();
 		mDao = dbHelper.getModelDao(cls);
 		mClass = cls;
@@ -31,6 +34,7 @@ public class DatabaseService<T extends IDatabaseModel> {
 	public T loadFromJson(String json) {
 		try {
 			T model = mJsonHelper.build(mClass).fromJson(json, mClass);
+			loadForeign(mDbHelper, model);
 			return model;
 		} catch (Exception e) {
 			Log.e(TAG, "LoadFromJson error!", e);
@@ -116,5 +120,8 @@ public class DatabaseService<T extends IDatabaseModel> {
 
 	public Dao<T, Integer> getDao() {
 		return mDao;
+	}
+
+	protected void loadForeign(DatabaseHelper dbHelper, T model) {
 	}
 }

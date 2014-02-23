@@ -6,5 +6,4 @@ public interface IDatabaseModel {
 
 	public Integer getId();
 
-	public void loadForeign();
 }
